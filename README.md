@@ -8,6 +8,7 @@
 - https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/dbapi/dbapi.html
 
 #### Automatico
+- https://opentelemetry.io/docs/instrumentation/python/automatic/
 - https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation
 - https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation/opentelemetry-instrumentation-flask
 - https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation/opentelemetry-instrumentation-dbapi

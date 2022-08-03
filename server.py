@@ -22,12 +22,13 @@ from opentelemetry.instrumentation import dbapi
 DATABASE_PATH="users.db"
 
 trace.set_tracer_provider(TracerProvider())
-tracer = trace.get_tracer_provider().get_tracer(__name__)
 
 trace.get_tracer_provider().add_span_processor(
     BatchSpanProcessor(ConsoleSpanExporter())
 )
 
+# only for instrumented manually (not used in this project)
+tracer = trace.get_tracer_provider().get_tracer(__name__)
 
 # FIX: patch pyodbc error trace
 def get_traced_connection_proxy(
