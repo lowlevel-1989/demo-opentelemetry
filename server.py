@@ -21,10 +21,6 @@ from opentelemetry.instrumentation import dbapi
 
 DATABASE_PATH="users.db"
 
-app=Flask(__name__)
-
-FlaskInstrumentor().instrument_app(app)
-
 trace.set_tracer_provider(TracerProvider())
 tracer = trace.get_tracer_provider().get_tracer(__name__)
 
@@ -72,11 +68,18 @@ class DatabaseApiIntegration(dbapi.DatabaseApiIntegration):
         self.get_connection_attributes(connection)
         return get_traced_connection_proxy(connection, self)
 
+# trace pyodbc
 dbapi.trace_integration(
         connect_module=pyodbc,
         connect_method_name="connect",
         database_system="odbc",
         db_api_integration_factory=DatabaseApiIntegration)
+
+
+app=Flask(__name__)
+
+# trace flask
+FlaskInstrumentor().instrument_app(app)
 
 
 # APLICACIÓN SIN CAMBIOS, NO SON NECESARIOS EN EL MODO AUTOMATICO
