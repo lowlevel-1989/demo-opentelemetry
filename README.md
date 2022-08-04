@@ -58,5 +58,5 @@ $ pip install requests
 ~~~bash
 $ source env/bin/activate         # (optional)
 $
-$ python server.py
+$ python app.py
 ~~~
