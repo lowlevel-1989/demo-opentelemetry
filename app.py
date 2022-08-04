@@ -78,6 +78,7 @@ dbapi.trace_integration(
 
 
 app=Flask(__name__)
+app.secret_key='secret'
 
 # trace flask
 FlaskInstrumentor().instrument_app(app)
@@ -141,5 +142,4 @@ def delete_user(uid):
     return redirect(url_for("index"))
 
 if __name__=='__main__':
-    app.secret_key='secret'
     app.run(port=5000, debug=True)

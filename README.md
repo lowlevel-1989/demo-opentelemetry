@@ -24,9 +24,16 @@ tools (e.g. Jaeger and Zipkin), to commercial SAAS offerings.
 
 #### Install
 
+###### DOCKER
+
+~~~bash
+$ podman build -t demo-opentelemetry .
+$ podman run --rm -it -p 5000:5000 demo-opentelemetry
+~~~
+
 ###### DEBIAN (solo para sqlite)
 ~~~bash
-$ sudo apt install libsqliteodbc
+$ sudo apt install unixodbc-dev libsqliteodbc
 ~~~
 
 ###### CENTOS (solo para sqlite)
