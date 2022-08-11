@@ -1,3 +1,4 @@
+import instana
 import typing
 import pyodbc
 
@@ -10,9 +11,12 @@ from flask import flash
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.semconv.resource import ResourceAttributes
 
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 # flask
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
@@ -21,10 +25,19 @@ from opentelemetry.instrumentation import dbapi
 
 DATABASE_PATH="users.db"
 
-trace.set_tracer_provider(TracerProvider())
+trace.set_tracer_provider(TracerProvider(
+    resource=Resource.create({
+        ResourceAttributes.SERVICE_NAME: 'otel-demo-opentelemetry',
+    })
+))
+
+#trace.get_tracer_provider().add_span_processor(
+#    BatchSpanProcessor(ConsoleSpanExporter())
+#)
 
 trace.get_tracer_provider().add_span_processor(
-    BatchSpanProcessor(ConsoleSpanExporter())
+        BatchSpanProcessor(OTLPSpanExporter(endpoint="127.0.0.1:4317",
+            insecure=True, timeout=5))
 )
 
 # only for instrumented manually (not used in this project)
@@ -94,7 +107,7 @@ def index():
     data=cur.fetchall()
     return render_template("index.html",datas=data)
 
-@app.route("/add_user",methods=['POST','GET'])
+@app.route("/add_user", methods=['POST','GET'])
 def add_user():
     if request.method=='POST':
 
@@ -110,7 +123,7 @@ def add_user():
         return redirect(url_for("index"))
     return render_template("add_user.html")
 
-@app.route("/edit_user/<string:uid>",methods=['POST','GET'])
+@app.route("/edit_user/<string:uid>", methods=['POST','GET'])
 def edit_user(uid):
     con = pyodbc.connect("Driver=SQLite3;Database={}".format(DATABASE_PATH))
     cur=con.cursor()
@@ -131,7 +144,7 @@ def edit_user(uid):
 
     return render_template("edit_user.html",datas=data)
 
-@app.route("/delete_user/<string:uid>",methods=['GET'])
+@app.route("/delete_user/<string:uid>", methods=['GET'])
 def delete_user(uid):
     con = pyodbc.connect("Driver=SQLite3;Database={}".format(DATABASE_PATH))
     cur=con.cursor()
@@ -140,6 +153,13 @@ def delete_user(uid):
 
     flash('User Deleted','warning')
     return redirect(url_for("index"))
+
+@app.route('/health-check', methods=['GET'])
+def health():
+    tracer = trace.get_tracer(__name__)
+    span = trace.get_current_span()
+    span.set_attribute('http.request.header.x_instana_synthetic', '1')
+    return 'OK'
 
 if __name__=='__main__':
     app.run(port=5000, debug=True)
