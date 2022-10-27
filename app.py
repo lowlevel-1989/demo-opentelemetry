@@ -31,6 +31,7 @@ trace.set_tracer_provider(TracerProvider(
     })
 ))
 
+# console mode
 #trace.get_tracer_provider().add_span_processor(
 #    BatchSpanProcessor(ConsoleSpanExporter())
 #)
