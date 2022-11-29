@@ -2,6 +2,8 @@ import instana
 import typing
 import pyodbc
 
+from pymongo import MongoClient
+
 from flask import Flask
 from flask import render_template
 from flask import request
@@ -22,8 +24,14 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 # odbc with dbapi
 from opentelemetry.instrumentation import dbapi
+# Pymongo instrumentor
+from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
 
-DATABASE_PATH="users.db"
+
+DATABASE_PATH = "users.db"
+MONGO_DATABASE_HOST = "mongodb://some-mongo"
+MONGO_DATABASE = "users_count"
+MONGO_COLLECTION = "users"
 
 trace.set_tracer_provider(TracerProvider(
     resource=Resource.create({
@@ -32,14 +40,14 @@ trace.set_tracer_provider(TracerProvider(
 ))
 
 # console mode
-#trace.get_tracer_provider().add_span_processor(
-#    BatchSpanProcessor(ConsoleSpanExporter())
-#)
-
 trace.get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(OTLPSpanExporter(endpoint="127.0.0.1:4317",
-            insecure=True, timeout=5))
+   BatchSpanProcessor(ConsoleSpanExporter())
 )
+
+# trace.get_tracer_provider().add_span_processor(
+#         BatchSpanProcessor(OTLPSpanExporter(endpoint="127.0.0.1:4317",
+#             insecure=True, timeout=5))
+# )
 
 # only for instrumented manually (not used in this project)
 tracer = trace.get_tracer_provider().get_tracer(__name__)
@@ -83,6 +91,10 @@ class DatabaseApiIntegration(dbapi.DatabaseApiIntegration):
         self.get_connection_attributes(connection)
         return get_traced_connection_proxy(connection, self)
 
+
+PymongoInstrumentor().instrument()
+
+
 # trace pyodbc
 dbapi.trace_integration(
         connect_module=pyodbc,
@@ -98,6 +110,30 @@ app.secret_key='secret'
 FlaskInstrumentor().instrument_app(app)
 
 
+def get_user_counter(add=False, delete=False):
+    mongo_client = MongoClient(MONGO_DATABASE_HOST)
+    mongo_db = mongo_client[MONGO_DATABASE]
+    collection = mongo_db[MONGO_COLLECTION]
+    users = collection.find_one()
+    counter = users["counter"]
+
+    if add:
+        new_counter = counter + 1
+        collection.update_one(
+            {"counter": counter},
+            {"$set": { "counter": new_counter }},
+        )
+
+    if delete:
+        new_counter = counter - 1
+        collection.update_one(
+            {"counter": counter},
+            {"$set": { "counter": new_counter }},
+        )
+
+    return counter
+
+
 # APLICACIÓN SIN CAMBIOS, NO SON NECESARIOS EN EL MODO AUTOMATICO
 @app.route("/")
 @app.route("/index")
@@ -106,7 +142,10 @@ def index():
     cur=con.cursor()
     cur.execute("select * from users")
     data=cur.fetchall()
-    return render_template("index.html",datas=data)
+
+    user_counter = get_user_counter()
+
+    return render_template("index.html",datas=data, counter=user_counter)
 
 @app.route("/add_user", methods=['POST','GET'])
 def add_user():
@@ -119,6 +158,9 @@ def add_user():
         cur=con.cursor()
         cur.execute("insert into users(UNAME,CONTACT) values (?,?)",(uname,contact))
         con.commit()
+
+        # Increase MongoDB counter
+        get_user_counter(add=True)
 
         flash('User Added','success')
         return redirect(url_for("index"))
@@ -151,6 +193,9 @@ def delete_user(uid):
     cur=con.cursor()
     cur.execute("delete from users where UID=?",(uid,))
     con.commit()
+
+    # Decrease MongoDB counter
+    get_user_counter(delete=True)
 
     flash('User Deleted','warning')
     return redirect(url_for("index"))

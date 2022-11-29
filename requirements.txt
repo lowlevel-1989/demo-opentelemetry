@@ -2,7 +2,7 @@ instana
 protobuf==3.20.3
 click==8.1.3
 Deprecated==1.2.13
-Flask==2.1.3
+Flask==2.2.2
 itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.1
@@ -12,11 +12,13 @@ opentelemetry-instrumentation==0.34b0
 opentelemetry-instrumentation-dbapi==0.34b0
 opentelemetry-instrumentation-flask==0.34b0
 opentelemetry-instrumentation-wsgi==0.34b0
+opentelemetry-instrumentation-pymongo==0.34b0
 opentelemetry-sdk==1.13.0
 opentelemetry-semantic-conventions==0.34b0
 opentelemetry-util-http==0.34b0
 opentelemetry-exporter-otlp-proto-grpc==1.13.0
 pyodbc==4.0.34
+pymongo==4.3.3
 typing_extensions==4.3.0
 Werkzeug==2.2.1
 wrapt==1.14.1

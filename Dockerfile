@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 WORKDIR /app
 
-COPY requirements.txt app.py create_db.py .
+COPY requirements.txt app.py create_db.py create_mongo_collection.py .
 COPY templates /app/templates
 
 ENV INSTANA_HOST_ID=123456789
