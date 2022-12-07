@@ -1,0 +1,3 @@
+com.instana.plugin.python:
+  autotrace:
+    enabled: true

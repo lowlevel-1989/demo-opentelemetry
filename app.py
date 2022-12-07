@@ -1,5 +1,3 @@
-import instana
-import typing
 import pyodbc
 
 from pymongo import MongoClient
@@ -11,103 +9,15 @@ from flask import redirect
 from flask import url_for
 from flask import flash
 
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.semconv.resource import ResourceAttributes
-
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-
-# flask
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-# odbc with dbapi
-from opentelemetry.instrumentation import dbapi
-# Pymongo instrumentor
-from opentelemetry.instrumentation.pymongo import PymongoInstrumentor
-
 
 DATABASE_PATH = "users.db"
-MONGO_DATABASE_HOST = "mongodb://some-mongo"
+MONGO_DATABASE_HOST = "mongodb://0.0.0.0"
 MONGO_DATABASE = "users_count"
 MONGO_COLLECTION = "users"
-
-trace.set_tracer_provider(TracerProvider(
-    resource=Resource.create({
-        ResourceAttributes.SERVICE_NAME: 'otel-demo-opentelemetry',
-    })
-))
-
-# console mode
-trace.get_tracer_provider().add_span_processor(
-   BatchSpanProcessor(ConsoleSpanExporter())
-)
-
-# trace.get_tracer_provider().add_span_processor(
-#         BatchSpanProcessor(OTLPSpanExporter(endpoint="127.0.0.1:4317",
-#             insecure=True, timeout=5))
-# )
-
-# only for instrumented manually (not used in this project)
-tracer = trace.get_tracer_provider().get_tracer(__name__)
-
-# FIX: patch pyodbc error trace
-def get_traced_connection_proxy(
-    connection, db_api_integration, *args, **kwargs
-):
-    class TracedConnectionProxy:
-        def __init__(self, connection):
-            self._connection = connection
-
-        def __getattr__(self, name):
-            return object.__getattribute__(
-                object.__getattribute__(self, "_connection"), name
-            )
-
-        def cursor(self, *args, **kwargs):
-            return dbapi.get_traced_cursor_proxy(
-                self._connection.cursor(*args, **kwargs), db_api_integration
-            )
-
-        # For some reason this is necessary as trying to access the close
-        # method of self._connection via __getattr__ leads to unexplained
-        # errors.
-        def close(self):
-            self._connection.close()
-
-    return TracedConnectionProxy(connection)
-
-class DatabaseApiIntegration(dbapi.DatabaseApiIntegration):
-
-    def wrapped_connection(
-        self,
-        connect_method: typing.Callable[..., typing.Any],
-        args: typing.Tuple[typing.Any, typing.Any],
-        kwargs: typing.Dict[typing.Any, typing.Any],
-    ):
-        """Add object proxy to connection object."""
-        connection = connect_method(*args, **kwargs)
-        self.get_connection_attributes(connection)
-        return get_traced_connection_proxy(connection, self)
-
-
-PymongoInstrumentor().instrument()
-
-
-# trace pyodbc
-dbapi.trace_integration(
-        connect_module=pyodbc,
-        connect_method_name="connect",
-        database_system="odbc",
-        db_api_integration_factory=DatabaseApiIntegration)
 
 
 app=Flask(__name__)
 app.secret_key='secret'
-
-# trace flask
-FlaskInstrumentor().instrument_app(app)
 
 
 def get_user_counter(add=False, delete=False):

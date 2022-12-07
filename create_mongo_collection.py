@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 
 
-mongo_client = MongoClient("mongodb://some-mongo")
+mongo_client = MongoClient("mongodb://0.0.0.0")
 # Create DB
 mongo_db = mongo_client["users_count"]
 # Create collection

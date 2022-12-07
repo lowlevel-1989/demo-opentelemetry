@@ -26,19 +26,14 @@ tools (e.g. Jaeger and Zipkin), to commercial SAAS offerings.
 
 ###### DOCKER
 
-Create a network with the bridge driver:
 
 ~~~bash
-$ docker network create --driver bridge opentelemetry-bridge
+$ podman run --rm --network host --name some-mongo mongo:5.0.14
 ~~~
 
 ~~~bash
-$ docker run --rm --network opentelemetry-bridge --name some-mongo mongo:5.0.14
-~~~
-
-~~~bash
-$ docker build -t demo-opentelemetry .
-$ docker run --network opentelemetry-bridge --rm -it -p 5000:5000 --name demo-opentelemetry demo-opentelemetry
+$ podman build -t demo-opentelemetry .
+$ podman run --network host --rm -it -p 5000:5000 --name demo-opentelemetry demo-opentelemetry
 ~~~
 
 Run the following command to create the users collection:
