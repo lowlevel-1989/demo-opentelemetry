@@ -71,3 +71,10 @@ $ source env/bin/activate         # (optional)
 $
 $ python app.py
 ~~~
+
+#### RUN WSGI
+~~~bash
+$ source env/bin/activate         # (optional)
+$
+$ gunicorn -c gunicorn.conf.py wsgi:app
+~~~

@@ -53,6 +53,8 @@ def index():
     cur.execute("select * from users")
     data=cur.fetchall()
 
+    print('VINICIO')
+
     user_counter = get_user_counter()
 
     return render_template("index.html",datas=data, counter=user_counter)
