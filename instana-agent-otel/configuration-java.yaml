@@ -1,0 +1,3 @@
+com.instana.plugin.javatrace:
+  autotrace:
+    enabled: true

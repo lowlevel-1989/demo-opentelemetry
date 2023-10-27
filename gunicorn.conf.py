@@ -32,7 +32,7 @@ def post_fork(server, worker):
     ))
 
     # console mode
-    #trace.get_tracer_provider().add_span_processor(
+    # trace.get_tracer_provider().add_span_processor(
     #   BatchSpanProcessor(ConsoleSpanExporter())
     #)
 

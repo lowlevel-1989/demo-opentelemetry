@@ -49,7 +49,7 @@ $ sudo apt install unixodbc-dev libsqliteodbc
 
 ###### CENTOS (solo para sqlite)
 ~~~bash
-$ sudo dnf install sqliteodbc
+$ sudo dnf install sqliteodbc unixODBC-devel
 ~~~
 
 ###### PYTHON
