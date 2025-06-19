@@ -32,11 +32,11 @@ def post_fork(server, worker):
     ))
 
     # console mode
-    # trace.get_tracer_provider().add_span_processor(
-    #   BatchSpanProcessor(ConsoleSpanExporter())
-    #)
-
     trace.get_tracer_provider().add_span_processor(
-        BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint_agent}:4317",
-                                            insecure=True, timeout=5))
+       BatchSpanProcessor(ConsoleSpanExporter())
     )
+
+    #trace.get_tracer_provider().add_span_processor(
+    #    BatchSpanProcessor(OTLPSpanExporter(endpoint=f"{endpoint_agent}:4317",
+    #                                        insecure=True, timeout=5))
+    #)
